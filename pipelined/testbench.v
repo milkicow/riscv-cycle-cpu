@@ -32,7 +32,7 @@ module testbench();
     initial begin
         $dumpvars;
         $display("Test started...");
-        #1000 $finish;
+        #10000 $finish;
     end
 
 
