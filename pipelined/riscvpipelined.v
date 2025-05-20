@@ -1,22 +1,58 @@
 module riscvpipelined(input  logic        clk, reset,
-                   output logic [31:0] PC,
-                   input  logic [31:0] Instr,
-                   output logic        MemWrite,
-                   output logic [31:0] ALUResult, WriteData,
-                   input  logic [31:0] ReadData);
 
-    logic ALUSrc, RegWrite, Jump, Zero;
-    logic [1:0] ResultSrc, ImmSrc;
-    logic [2:0] ALUControl;
+                      output logic [31:0] PC,
+                      input  logic [31:0] InstrF,
 
-    controller c(Instr[6:0], Instr[14:12], Instr[30], Zero,
-                 ResultSrc, MemWrite, PCSrc,
-                 ALUSrc, RegWrite, Jump,
-                 ImmSrc, ALUControl);
+                      // Memory
+                      output logic        MemWrite,
+                      output logic [31:0] ALUResult, WriteData,
+                      input  logic [31:0] ReadData);
 
-    datapath dp(clk, reset, ResultSrc, PCSrc,
-                ALUSrc, RegWrite,
-                ImmSrc, ALUControl,
-                Zero, PC, Instr,
-                ALUResult, WriteData, ReadData);
+
+    logic [6:0] op;
+    logic [2:0] funct3;
+    logic funct7b5;
+
+    logic RegWriteD;
+    logic [1:0] ResultSrcD, ImmSrcD;
+    logic [2:0] ALUControlD;
+
+    logic MemWriteD, JumpD, BranchD, ALUSrcD;
+
+    logic [31:0] InstrD;
+
+    assign op = InstrD[6:0];
+    assign funct3 = InstrD[14:12];
+    assign funct7b5 = InstrD[30];
+
+    controller c(.op(op), .funct3(funct3), .funct7b5(funct7b5),
+
+                .RegWriteD(RegWriteD),
+                .ResultSrcD(ResultSrcD),
+                .MemWriteD(MemWriteD),
+                .JumpD(JumpD),
+                .BranchD(BranchD),
+                .ALUControlD(ALUControlD),
+                .ALUSrcD(ALUSrcD),
+                .ImmSrcD(ImmSrcD));
+
+    datapath dp(.clk(clk), .reset(reset),
+                // controller input signals
+                .RegWriteD(RegWriteD),
+                .ResultSrcD(ResultSrcD),
+                .MemWriteD(MemWriteD),
+                .JumpD(JumpD),
+                .BranchD(BranchD),
+                .ALUControlD(ALUControlD),
+                .ALUSrcD(ALUSrcD),
+                .ImmSrcD(ImmSrcD),
+                // mem data
+                .MemWriteM(MemWrite),
+                .ALUResultM(ALUResult),
+                .WriteDataM(WriteData),
+                .ReadDataM(ReadData),
+                //
+                .InstrF(InstrF),
+                .PCF(PC),
+                .InstrD(InstrD));
 endmodule
