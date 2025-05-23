@@ -1,3 +1,4 @@
 pipelined/build
 pipelined/tmp
+pipelined/.vscode
 test_verilator

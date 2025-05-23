@@ -4,7 +4,7 @@ module imem(input logic [31:0] a,
     logic [31:0] RAM[0:127];
 
     initial
-        $readmemh("../program.mem", RAM);
+        $readmemh("../programs/store.mem", RAM);
 
     assign rd = RAM[a[8:2]]; // word aligned
 endmodule
