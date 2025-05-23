@@ -28,6 +28,6 @@ set(VERILATOR_SOURCES
 verilate(model
     SOURCES ${VERILATOR_SOURCES}
     TOP_MODULE top
-    PREFIX Vriscv
-    VERILATOR_ARGS -Wall -Wno-UNUSED -Wno-UNDRIVEN
+    PREFIX Vtop
+    VERILATOR_ARGS -Wall -Wno-UNUSED -Wno-UNDRIVEN --trace --public
 )
