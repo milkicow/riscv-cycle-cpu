@@ -19,8 +19,8 @@ module datapath(input  logic        clk, reset,
 
 
     // hazard wire
-    logic resetDF;
-    logic resetFE;
+    logic resetFD;
+    logic resetDE;
     logic resetEM;
     logic resetMW;
     //
@@ -84,7 +84,7 @@ module datapath(input  logic        clk, reset,
     flopr #(32) pcreg(clk, reset, PCNextF, PCF);
     adder       pcadd4(PCF, 32'd4, PCPlus4F);
 
-    flopr #(96) FetchDecode(clk, resetDF,
+    flopr #(96) FetchDecode(clk, resetFD,
                              {InstrF, PCF, PCPlus4F},
                              {InstrD, PCD, PCPlus4D});
 
@@ -92,10 +92,10 @@ module datapath(input  logic        clk, reset,
 
     assign RdD = InstrD[11:7];
 
-    regfile     rf(clk, RegWriteW,
-                   InstrD[19:15], InstrD[24:20], RdW,
-                   ResultW,
-                   RD1D, RD2D);
+    regfile     regfile_inst(clk, RegWriteW,
+                             InstrD[19:15], InstrD[24:20], RdW,
+                             ResultW,
+                             RD1D, RD2D);
 
     extend      ext(InstrD[31:7], ImmSrcD, ImmExtD);
 
