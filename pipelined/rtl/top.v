@@ -1,5 +1,6 @@
 
 module top(input  logic        clk, reset,
+            // trace outpue
            output logic [31:0] WriteData, DataAdr,
            output logic        MemWrite,
            output logic [31:0] PC, Instr);

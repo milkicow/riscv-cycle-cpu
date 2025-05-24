@@ -32,7 +32,7 @@ verilate(model
     SOURCES ${VERILATOR_SOURCES}
     TOP_MODULE top
     PREFIX Vtop
-    VERILATOR_ARGS -Wall -Wno-UNUSED -Wno-UNDRIVEN --trace --public
+    VERILATOR_ARGS -cc -Wall --exe -Wno-UNUSED -Wno-UNDRIVEN --trace --public
 )
 
 target_link_libraries(model PRIVATE sim_decoder)
