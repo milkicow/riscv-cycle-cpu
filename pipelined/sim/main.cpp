@@ -2,10 +2,22 @@
 #include <verilated_vcd_c.h>
 
 #include <CLI/CLI.hpp>
-#include <cstdio>
+#include <format>
 #include <memory>
+#include <sstream>
+#include <string>
 
 #include "Vtop.h"
+#include "decoder.hpp"
+#include "instruction.hpp"
+
+static std::string format_pc(uint32_t pc) { return std::format("{:04x}", pc); }
+
+static std::string format_addr(uint32_t addr) { return std::format("{:04x}", addr); }
+
+static std::string format_value(uint32_t value) { return std::format("0x{:x}", value); }
+
+static std::string format_instr_hex(uint32_t instr) { return std::format("0x{:08x}", instr); }
 
 int main(int argc, char **argv) {
     CLI::App app{"RISCV simulator model"};
@@ -28,8 +40,12 @@ int main(int argc, char **argv) {
 
     uint64_t main_time = 0;
 
+    std::ostringstream oss{};
+    sim::EncInstr enc_instr;
+
     while (!context->gotFinish()) {
         context->timeInc(1);
+
         top->clk = !top->clk;
         top->eval();
 
@@ -37,16 +53,29 @@ int main(int argc, char **argv) {
 
         ++main_time;
 
-        //
-        std::printf("clock: %d\n", top->clk);
-        std::printf("Write Data: %d\n", top->WriteData);
+        uint32_t raw_instr = top->Instr;
 
-        if (top->Instr == 0xFFFFFFFF) {
-            printf("Simulation end.");
+        if (raw_instr == 0xFFFFFFFF || main_time > 1000) {
+            oss << "Simulation end.";
             break;
+        }
+
+        //
+        if (top->clk) {
+            sim::Decoder::decode_instruction(raw_instr, enc_instr);
+
+            oss << '[' << format_pc(top->PC) << "]: " << enc_instr.format() << ' '
+                << format_instr_hex(raw_instr) << '\n';
+
+            if (top->MemWrite) {
+                oss << "\tDATA_MEM[" << format_addr(top->DataAdr)
+                    << "] = " << format_value(top->WriteData) << '\n';
+            }
         }
     }
 
     trace->close();
+
+    std::cout << oss.str();
     return 0;
 }

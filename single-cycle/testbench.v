@@ -23,7 +23,7 @@ module testbench();
                 $display("Simulation succeeded");
                 $stop;
             end else if (DataAdr !== 96) begin
-                $display("Simulation failed");
+                $display("Simulation failed (Unexpected write: DataAddr=%0d, WriteData=%0d)", DataAdr, WriteData);
                 $stop;
             end
         end
@@ -32,7 +32,7 @@ module testbench();
     initial begin
         $dumpvars;
         $display("Test started...");
-        #1000 $finish;
+        #10000 $finish;
     end
 
 
