@@ -1,0 +1,3 @@
+[submodule "pipelined/RV64I_SIM"]
+	path = pipelined/RV64I_SIM
+	url = https://github.com/milkicow/RV64I_SIM
