@@ -1,10 +1,11 @@
 module flopr #(parameter WIDTH = 8)
               (input  logic             clk, reset,
-               input  logic [WIDTH-1:0] d,
+               input  logic [WIDTH-1:0] reset_data,
+               input  logic [WIDTH-1:0] data,
                output logic [WIDTH-1:0] q);
 
     always_ff @(posedge clk, posedge reset)
-                if (reset) q <= 0;
-                else       q <= d;
+                if (reset) q <= reset_data;
+                else       q <= data;
 
 endmodule

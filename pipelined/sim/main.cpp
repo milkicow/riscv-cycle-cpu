@@ -8,8 +8,10 @@
 #include <string>
 
 #include "Vtop.h"
+
 #include "decoder.hpp"
 #include "instruction.hpp"
+#include "loader.hpp"
 
 static std::string format_pc(uint32_t pc) { return std::format("{:04x}", pc); }
 
@@ -34,6 +36,10 @@ int main(int argc, char **argv) {
     auto trace = std::make_unique<VerilatedVcdC>();
     top->trace(trace.get(), 99);
     trace->open(vcd_path.c_str());
+
+    // Load program from elf
+    const std::filesystem::path program_path{"../programs_bin/factorial"};
+    load_elf_in_mem(program_path, top.get());
 
     // Start setup
     top->clk = 0;
