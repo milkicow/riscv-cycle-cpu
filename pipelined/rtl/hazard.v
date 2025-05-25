@@ -5,7 +5,10 @@ module hazard(// ByPasses args
               // Stall args
               input  logic [4:0] Rs1D, Rs2D, RdE,
               input  logic       ResultSrcE0,
-              output logic       StallF, StallD, FlushE);
+              output logic       StallF, StallD, FlushE,
+              // Clear args
+              input  logic       PCSrcE,
+              output logic       FlushD);
 
     bypass bypass1(.RsE(Rs1E), .RdM(RdM), .RdW(RdW),
                    .RegWriteM(RegWriteM), .RegWriteW(RegWriteW),
@@ -20,6 +23,8 @@ module hazard(// ByPasses args
 
     assign StallF = lwStall;
     assign StallD = lwStall;
-    assign FlushE = lwStall;
+
+    assign FlushD = PCSrcE;
+    assign FlushE = lwStall | PCSrcE;
 
 endmodule
