@@ -24,7 +24,7 @@ module datapath(input  logic        clk, reset,
     logic resetEM;
     logic resetMW;
 
-    logic StallF, StallD, FlushE;
+    logic StallF, StallD, FlushE, FlushD;
     //
 
     // Fetch
@@ -92,7 +92,7 @@ module datapath(input  logic        clk, reset,
     flopenr #(32) pcreg(clk, reset, !StallF, startPC, PCNextF, PCF);
     adder         pcadd4(PCF, 32'd4, PCPlus4F);
 
-    flopenr #(96) FetchDecode(clk, reset, !StallD, 0,
+    flopenr #(96) FetchDecode(clk, FlushD, !StallD, 0,
                               {InstrF, PCF, PCPlus4F},
                               {InstrD, PCD, PCPlus4D});
 
@@ -157,8 +157,9 @@ module datapath(input  logic        clk, reset,
                   // Stall args
                   .Rs1D(Rs1D), .Rs2D(Rs2D), .RdE(RdE),
                   .ResultSrcE0(ResultSrcE[0]),
-                  .StallF(StallF), .StallD(StallD), .FlushE(FlushE)
-                  );
-
+                  .StallF(StallF), .StallD(StallD), .FlushE(FlushE),
+                  // Clear args
+                  .PCSrcE(PCSrcE),
+                  .FlushD(FlushD));
 
 endmodule
