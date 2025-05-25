@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string_view>
 #include <vector>
+#include <iostream>
 
 #include "Vtop.h"
 
@@ -59,5 +60,7 @@ void load_elf_in_mem(const std::filesystem::path &elf_file, Vtop *top) {
         auto segment_size = segment->get_memory_size();
 
         std::memcpy(top->top->imem->RAM.data() + segment_addr, segment->get_data(), segment_size);
+        std::cout << "Start: " << top->top->imem->RAM.data() + segment_addr << std::endl;
+        std::cout << "End: " << top->top->imem->RAM.data() + segment_addr + segment_size << std::endl;
     }
 }

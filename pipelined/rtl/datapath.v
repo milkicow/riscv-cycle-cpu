@@ -36,10 +36,11 @@ module datapath(input  logic        clk, reset,
     // Decode
     logic [31:0] ImmExtD;
     logic [31:0] RD1D, RD2D;
+
+    logic [4:0] Rs1D, Rs2D, Rs1E, Rs2E;
     logic [4:0] RdD;
 
     logic [31:0] ResultW;
-
 
     logic [31:0] ImmExtE;
     logic [31:0] RD1E, RD2E;
@@ -54,6 +55,8 @@ module datapath(input  logic        clk, reset,
     logic [31:0] SrcAE, SrcBE;
     logic [31:0] ALUResultE;
     logic [31:0] WriteDataE;
+
+    logic [1:0] ForwardAE, ForwardBE;
 
     logic [4:0] RdM;
 
@@ -95,6 +98,9 @@ module datapath(input  logic        clk, reset,
 
     assign RdD = InstrD[11:7];
 
+    assign Rs1D = InstrD[19:15];
+    assign Rs2D = InstrD[24:20];
+
     regfile     regfile_inst(clk, RegWriteW,
                              InstrD[19:15], InstrD[24:20], RdW,
                              ResultW,
@@ -102,21 +108,25 @@ module datapath(input  logic        clk, reset,
 
     extend      ext(InstrD[31:7], ImmSrcD, ImmExtD);
 
-    flopr #(175) DecodeExecute(clk, resetDE, 0,
+    flopr #(185) DecodeExecute(clk, resetDE, 0,
                                {RD1D, RD2D, PCD, RdD, ImmExtD, PCPlus4D,
-                               RegWriteD, ResultSrcD, MemWriteD, JumpD, BranchD, ALUControlD, ALUSrcD},
+                               RegWriteD, ResultSrcD, MemWriteD, JumpD, BranchD, ALUControlD, ALUSrcD, Rs1D, Rs2D},
                                {RD1E, RD2E, PCE, RdE, ImmExtE, PCPlus4E,
-                               RegWriteE, ResultSrcE, MemWriteE, JumpE, BranchE, ALUControlE, ALUSrcE});
+                               RegWriteE, ResultSrcE, MemWriteE, JumpE, BranchE, ALUControlE, ALUSrcE, Rs1E, Rs2E});
 
     // ------------------ Execute --------------------
 
-    assign SrcAE = RD1E;
+    logic [31:0] predSrcBE;
+
+    mux3 #(32)  srcaemux(RD1E, ResultW, ALUResultM, ForwardAE, SrcAE);
+    mux3 #(32)  predsrcbemux(RD2E, ResultW, ALUResultM, ForwardBE, predSrcBE);
+    // assign SrcAE = RD1E;
 
     alu         alu(SrcAE, SrcBE, ALUControlE, ALUResultE, ZeroE);
-    mux2 #(32)  srcbmux(RD2E, ImmExtE, ALUSrcE, SrcBE);
+    mux2 #(32)  srcbmux(predSrcBE, ImmExtE, ALUSrcE, SrcBE);
     adder       pcaddbranch(PCE, ImmExtE, PCTargetE);
 
-    assign WriteDataE = RD2E;
+    assign WriteDataE = predSrcBE;
 
     flopr #(105) ExecuteMemory(clk, resetEM, 0,
                               {ALUResultE, WriteDataE, RdE, PCPlus4E,
@@ -137,5 +147,13 @@ module datapath(input  logic        clk, reset,
     // ------------------ Write-Back ------------------
 
     mux3 #(32)  resultmux(ALUResultW, ReadDataW, PCPlus4W, ResultSrcW, ResultW);
+
+    // ------------------ Hazard ----------------------
+
+    hazard hazard(.Rs1E(Rs1E), .Rs2E(Rs2E),
+                  .RdM(RdM), .RdW(RdW),
+                  .RegWriteM(RegWriteM), .RegWriteW(RegWriteW),
+                  .ForwardAE(ForwardAE), .ForwardBE(ForwardBE));
+
 
 endmodule

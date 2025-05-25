@@ -1,11 +1,12 @@
-module dmem(input logic clk, we,
-                input logic [31:0] a, wd,
-                output logic [31:0] rd);
+module dmem #(parameter HIGH_BIT = 16)
+             (input logic         clk, we,
+              input logic  [31:0] a, wd,
+              output logic [31:0] rd);
 
-    logic [31:0] RAM[63:0];
+    logic [31:0] RAM[0:(1 << HIGH_BIT) - 1];
 
-    assign rd = RAM[a[7:2]]; // word aligned
+    assign rd = RAM[a[HIGH_BIT+1:2]]; // word aligned
 
     always_ff @(posedge clk)
-        if (we) RAM[a[7:2]] <= wd;
+        if (we) RAM[a[HIGH_BIT+1:2]] <= wd;
 endmodule
