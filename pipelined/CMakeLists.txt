@@ -9,12 +9,14 @@ set(VERILATOR_SOURCES
     rtl/adder.v
     rtl/aludec.v
     rtl/alu.v
+    rtl/bypass.v
     rtl/controller.v
     rtl/dmem.v
     rtl/datapath.v
     rtl/extend.v
     rtl/flopenr.v
     rtl/flopr.v
+    rtl/hazard.v
     rtl/imem.v
     rtl/maindec.v
     rtl/mux2.v
