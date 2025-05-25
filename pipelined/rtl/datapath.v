@@ -23,6 +23,8 @@ module datapath(input  logic        clk, reset,
     logic resetDE;
     logic resetEM;
     logic resetMW;
+
+    logic StallF, StallD, FlushE;
     //
 
     // Fetch
@@ -86,13 +88,13 @@ module datapath(input  logic        clk, reset,
 
     // ------------------ Fetch ---------------------
 
-    mux2  #(32) pcmux(PCPlus4F, PCTargetE, PCSrcE, PCNextF);
-    flopr #(32) pcreg(clk, reset, startPC, PCNextF, PCF);
-    adder       pcadd4(PCF, 32'd4, PCPlus4F);
+    mux2    #(32) pcmux(PCPlus4F, PCTargetE, PCSrcE, PCNextF);
+    flopenr #(32) pcreg(clk, reset, !StallF, startPC, PCNextF, PCF);
+    adder         pcadd4(PCF, 32'd4, PCPlus4F);
 
-    flopr #(96) FetchDecode(clk, resetFD, 0,
-                             {InstrF, PCF, PCPlus4F},
-                             {InstrD, PCD, PCPlus4D});
+    flopenr #(96) FetchDecode(clk, reset, !StallD, 0,
+                              {InstrF, PCF, PCPlus4F},
+                              {InstrD, PCD, PCPlus4D});
 
     // ------------------ Decode --------------------
 
@@ -108,11 +110,11 @@ module datapath(input  logic        clk, reset,
 
     extend      ext(InstrD[31:7], ImmSrcD, ImmExtD);
 
-    flopr #(185) DecodeExecute(clk, resetDE, 0,
-                               {RD1D, RD2D, PCD, RdD, ImmExtD, PCPlus4D,
-                               RegWriteD, ResultSrcD, MemWriteD, JumpD, BranchD, ALUControlD, ALUSrcD, Rs1D, Rs2D},
-                               {RD1E, RD2E, PCE, RdE, ImmExtE, PCPlus4E,
-                               RegWriteE, ResultSrcE, MemWriteE, JumpE, BranchE, ALUControlE, ALUSrcE, Rs1E, Rs2E});
+    flopenr #(185) DecodeExecute(clk, FlushE, 1, 0,
+            {RD1D, RD2D, PCD, RdD, ImmExtD, PCPlus4D,
+            RegWriteD, ResultSrcD, MemWriteD, JumpD, BranchD, ALUControlD, ALUSrcD, Rs1D, Rs2D},
+            {RD1E, RD2E, PCE, RdE, ImmExtE, PCPlus4E,
+            RegWriteE, ResultSrcE, MemWriteE, JumpE, BranchE, ALUControlE, ALUSrcE, Rs1E, Rs2E});
 
     // ------------------ Execute --------------------
 
@@ -128,20 +130,17 @@ module datapath(input  logic        clk, reset,
 
     assign WriteDataE = predSrcBE;
 
-    flopr #(105) ExecuteMemory(clk, resetEM, 0,
-                              {ALUResultE, WriteDataE, RdE, PCPlus4E,
-                              RegWriteE, ResultSrcE, MemWriteE},
-                              {ALUResultM, WriteDataM, RdM, PCPlus4M,
-                              RegWriteM, ResultSrcM, MemWriteM});
-
+    flopenr #(105) ExecuteMemory(clk, reset, 1, 0,
+                                 {ALUResultE, WriteDataE, RdE, PCPlus4E,
+                                  RegWriteE, ResultSrcE, MemWriteE},
+                                 {ALUResultM, WriteDataM, RdM, PCPlus4M,
+                                  RegWriteM, ResultSrcM, MemWriteM});
 
     // ------------------ Memory ----------------------
 
-    flopr #(104) MemoryWriteback(clk, resetMW, 0,
-                                {ALUResultM, ReadDataM, RdM, PCPlus4M,
-                                RegWriteM, ResultSrcM},
-                                {ALUResultW, ReadDataW, RdW, PCPlus4W,
-                                RegWriteW, ResultSrcW});
+    flopenr #(104) MemoryWriteback(clk, reset, 1, 0,
+                                  {ALUResultM, ReadDataM, RdM, PCPlus4M, RegWriteM, ResultSrcM},
+                                  {ALUResultW, ReadDataW, RdW, PCPlus4W, RegWriteW, ResultSrcW});
 
 
     // ------------------ Write-Back ------------------
@@ -150,10 +149,16 @@ module datapath(input  logic        clk, reset,
 
     // ------------------ Hazard ----------------------
 
-    hazard hazard(.Rs1E(Rs1E), .Rs2E(Rs2E),
+    hazard hazard(// ByPasses args
+                  .Rs1E(Rs1E), .Rs2E(Rs2E),
                   .RdM(RdM), .RdW(RdW),
                   .RegWriteM(RegWriteM), .RegWriteW(RegWriteW),
-                  .ForwardAE(ForwardAE), .ForwardBE(ForwardBE));
+                  .ForwardAE(ForwardAE), .ForwardBE(ForwardBE),
+                  // Stall args
+                  .Rs1D(Rs1D), .Rs2D(Rs2D), .RdE(RdE),
+                  .ResultSrcE0(ResultSrcE[0]),
+                  .StallF(StallF), .StallD(StallD), .FlushE(FlushE)
+                  );
 
 
 endmodule
