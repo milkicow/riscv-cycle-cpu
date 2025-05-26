@@ -65,18 +65,24 @@ module datapath(input  logic        clk, reset,
     logic RegWriteM;
     logic [1:0] ResultSrcM;
 
+
     // Memory
     logic [31:0] PCPlus4M;
 
-    logic [31:0] ALUResultW;
+    logic [31:0] ALUResultW /* verilator public */;
     logic [31:0] ReadDataW;
     logic [31:0] PCPlus4W;
 
-    logic [4:0] RdW;
+    logic [4:0] RdW /* verilator public */;
 
-    logic       RegWriteW;
+    logic       RegWriteW /* verilator public */;
     logic [1:0] ResultSrcW;
 
+    // For cosimulation
+    logic [31:0] InstrE, InstrM, InstrW /* verilator public */;
+    logic [31:0] PCM, PCW /* verilator public */;
+    logic MemWriteW /* verilator public */;
+    logic [31:0] WriteDataW /* verilator public */;
 
     logic PCSrcE;
     logic ZeroE;
@@ -110,11 +116,13 @@ module datapath(input  logic        clk, reset,
 
     extend      ext(InstrD[31:7], ImmSrcD, ImmExtD);
 
-    flopenr #(185) DecodeExecute(clk, FlushE, 1, 0,
+    flopenr #(217) DecodeExecute(clk, FlushE, 1, 0,
             {RD1D, RD2D, PCD, RdD, ImmExtD, PCPlus4D,
-            RegWriteD, ResultSrcD, MemWriteD, JumpD, BranchD, ALUControlD, ALUSrcD, Rs1D, Rs2D},
+            RegWriteD, ResultSrcD, MemWriteD, JumpD, BranchD, ALUControlD, ALUSrcD, Rs1D, Rs2D,
+            InstrD},
             {RD1E, RD2E, PCE, RdE, ImmExtE, PCPlus4E,
-            RegWriteE, ResultSrcE, MemWriteE, JumpE, BranchE, ALUControlE, ALUSrcE, Rs1E, Rs2E});
+            RegWriteE, ResultSrcE, MemWriteE, JumpE, BranchE, ALUControlE, ALUSrcE, Rs1E, Rs2E,
+            InstrE});
 
     // ------------------ Execute --------------------
 
@@ -130,17 +138,21 @@ module datapath(input  logic        clk, reset,
 
     assign WriteDataE = predSrcBE;
 
-    flopenr #(105) ExecuteMemory(clk, reset, 1, 0,
+    flopenr #(169) ExecuteMemory(clk, reset, 1, 0,
                                  {ALUResultE, WriteDataE, RdE, PCPlus4E,
-                                  RegWriteE, ResultSrcE, MemWriteE},
+                                  RegWriteE, ResultSrcE, MemWriteE,
+                                  InstrE, PCE},
                                  {ALUResultM, WriteDataM, RdM, PCPlus4M,
-                                  RegWriteM, ResultSrcM, MemWriteM});
+                                  RegWriteM, ResultSrcM, MemWriteM,
+                                  InstrM, PCM});
 
     // ------------------ Memory ----------------------
 
-    flopenr #(104) MemoryWriteback(clk, reset, 1, 0,
-                                  {ALUResultM, ReadDataM, RdM, PCPlus4M, RegWriteM, ResultSrcM},
-                                  {ALUResultW, ReadDataW, RdW, PCPlus4W, RegWriteW, ResultSrcW});
+    flopenr #(201) MemoryWriteback(clk, reset, 1, 0,
+                                  {ALUResultM, ReadDataM, RdM, PCPlus4M, RegWriteM, ResultSrcM,
+                                   InstrM, PCM, MemWriteM, WriteDataM},
+                                  {ALUResultW, ReadDataW, RdW, PCPlus4W, RegWriteW, ResultSrcW,
+                                  InstrW, PCW, MemWriteW, WriteDataW});
 
 
     // ------------------ Write-Back ------------------
