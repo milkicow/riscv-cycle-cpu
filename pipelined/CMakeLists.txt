@@ -37,5 +37,9 @@ verilate(model
     VERILATOR_ARGS -cc -Wall --exe -Wno-UNUSED -Wno-UNDRIVEN --trace --public
 )
 
+if (APPLE)
+    target_link_options(model PRIVATE "-undefined" "dynamic_lookup")
+endif()
+
 target_link_libraries(model PRIVATE sim_decoder)
 target_include_directories(model PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/RV64I_SIM/decoder/include)

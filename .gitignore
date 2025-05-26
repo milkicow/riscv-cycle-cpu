@@ -4,3 +4,5 @@ pipelined/.vscode
 test_verilator
 test_public_verilator
 .vscode
+*__pycache__
+*.pytest_cache
