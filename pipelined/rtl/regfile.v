@@ -4,7 +4,7 @@ module regfile(input  logic        clk,
                input  logic [31:0] wd3,
                output logic [31:0] rd1, rd2);
 
-    logic [31:0] rf[31:0];
+    logic [31:0] rf[31:0] /* verilator public */;
 
     // three ported register file
     // read two ports combinationally

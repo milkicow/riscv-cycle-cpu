@@ -9,19 +9,21 @@
 
 #include "Vtop.h"
 #include "Vtop_datapath.h"
+#include "Vtop_regfile.h"
 #include "Vtop_riscvpipelined.h"
 #include "Vtop_top.h"
+// #include "vpi_user.h"
+
 #include "decoder.hpp"
 #include "instruction.hpp"
 #include "loader.hpp"
+#include "tracer.hpp"
 
-static std::string format_pc(uint32_t pc) { return std::format("{:04x}", pc); }
-
-static std::string format_addr(uint32_t addr) { return std::format("{:04x}", addr); }
-
-static std::string format_value(uint32_t value) { return std::format("0x{:x}", value); }
-
-static std::string format_instr_hex(uint32_t instr) { return std::format("0x{:08x}", instr); }
+static void format_all_registers(std::ostringstream& oss, VlUnpacked<IData, 32> regfile) {
+    for (int i = 0; i < 32; ++i) {
+        oss << "x" << std::dec << i << " = " << std::hex << regfile[i] << '\n';
+    }
+}
 
 int main(int argc, char** argv) {
     CLI::App app{"RISCV simulator model"};
@@ -63,36 +65,38 @@ int main(int argc, char** argv) {
     std::ostringstream oss{};
     sim::EncInstr enc_instr;
 
+    auto prev_regfile = top->top->rvpipelined->dp->regfile_inst->rf;
+    auto regfile = prev_regfile;
+
+    format_all_registers(oss, regfile);
+
+    Tracer tracer{top.get()};
+
     while (!context->gotFinish()) {
         context->timeInc(1);
         top->clk ^= 1;
         top->eval();
+
+        prev_regfile = regfile;
+        regfile = top->top->rvpipelined->dp->regfile_inst->rf;
+
         trace->dump(main_time);
         ++main_time;
 
         uint32_t raw_instr = top->Instr;
 
         if (raw_instr == 0xFFFFFFFF || main_time > simulation_time) {
-            oss << "Simulation end.";
+            oss << "Simulation end.\n";
             break;
         }
 
         //
-        if (!top->clk) try {
-                sim::Decoder::decode_instruction(raw_instr, enc_instr);
-
-                oss << '[' << format_pc(top->PC) << "]: " << enc_instr.format() << ' '
-                    << format_instr_hex(raw_instr) << '\n';
-
-                if (top->MemWrite) {
-                    oss << "\tDATA_MEM[" << format_addr(top->DataAdr)
-                        << "] = " << format_value(top->WriteData) << '\n';
-                }
-            } catch (std::runtime_error& err) {
-                // std::cerr << err.what() << '\n';
-            }
+        if (!top->clk) {
+            tracer.log_cycle(oss);
+        }
     }
 
+    format_all_registers(oss, regfile);
     trace->close();
 
     std::cout << oss.str();
