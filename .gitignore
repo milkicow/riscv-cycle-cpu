@@ -1,6 +1,6 @@
-pipelined/build
-pipelined/tmp
-pipelined/.vscode
+build
+tmp
+.vscode
 test_verilator
 test_public_verilator
 .vscode
