@@ -12,7 +12,6 @@
 #include "Vtop_regfile.h"
 #include "Vtop_riscvpipelined.h"
 #include "Vtop_top.h"
-
 #include "decoder.hpp"
 #include "instruction.hpp"
 #include "loader.hpp"
@@ -62,23 +61,22 @@ int main(int argc, char** argv) {
     // Start setup
     top->clk = 1;
     top->reset = 1;
-    top->top->rvpipelined->dp->regfile_inst->rf[2] = 0x90000;
     // top->top->rvpipelined->dp->startPC = 0;
 
     uint64_t main_time = 0;
 
     std::ostringstream oss{};
-    sim::EncInstr enc_instr;
 
     auto prev_regfile = top->top->rvpipelined->dp->regfile_inst->rf;
     auto regfile = prev_regfile;
 
-    format_all_registers(oss, regfile);
+    // format_all_registers(oss, regfile);
 
     Tracer tracer{top.get()};
 
-
-    top->reset = 0;
+    // Stack pointer
+    top->top->rvpipelined->dp->regfile_inst->rf[2] = 0x90000;
+    oss << "\tx2: " << std::hex << top->top->rvpipelined->dp->regfile_inst->rf[2] << '\n';
 
     while (!context->gotFinish()) {
         context->timeInc(1);
@@ -100,7 +98,6 @@ int main(int argc, char** argv) {
         uint32_t raw_instr = top->Instr;
 
         if (raw_instr == 0xFFFFFFFF || main_time > simulation_time) {
-            oss << "Simulation end.\n";
             break;
         }
 
@@ -110,7 +107,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    format_all_registers(oss, regfile);
+    // format_all_registers(oss, regfile);
     trace->close();
 
     std::cout << oss.str();

@@ -13,7 +13,7 @@ static std::string format_pc(uint32_t pc) { return std::format("{:04x}", pc); }
 
 static std::string format_addr(uint32_t addr) { return std::format("{:04x}", addr); }
 
-static std::string format_value(uint32_t value) { return std::format("0x{:x}", value); }
+static std::string format_value(uint32_t value) { return std::format("{:x}", value); }
 
 static std::string format_instr_hex(uint32_t instr) { return std::format("0x{:08x}", instr); }
 
@@ -51,8 +51,7 @@ class Tracer {
         if (instr) try {
                 sim::Decoder::decode_instruction(instr, enc_instr);
 
-                oss << '[' << format_pc(pc) << "]: " << enc_instr.format() << ' '
-                    << format_instr_hex(instr) << '\n';
+                oss << '[' << format_pc(pc) << "]: " << enc_instr.format() << '\n';
 
             } catch (std::runtime_error &err) {
                 oss << "Unknow instr: [" << format_pc(pc) << "]: " << format_instr_hex(instr)
