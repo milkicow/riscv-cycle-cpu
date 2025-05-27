@@ -15,9 +15,9 @@ module riscvpipelined(input  logic        clk, reset,
 
     logic RegWriteD;
     logic [1:0] ResultSrcD, ImmSrcD;
-    logic [2:0] ALUControlD;
+    logic [3:0] ALUControlD;
 
-    logic MemWriteD, JumpD, BranchD, ALUSrcD;
+    logic MemWriteD, JumpD, JumpRegD, BranchD, ALUSrcD;
 
     logic [31:0] InstrD;
 
@@ -25,16 +25,20 @@ module riscvpipelined(input  logic        clk, reset,
     assign funct3 = InstrD[14:12];
     assign funct7b5 = InstrD[30];
 
+    logic InverseBrCondD;
+
     controller c(.op(op), .funct3(funct3), .funct7b5(funct7b5),
 
                 .RegWriteD(RegWriteD),
                 .ResultSrcD(ResultSrcD),
                 .MemWriteD(MemWriteD),
                 .JumpD(JumpD),
+                .JumpRegD(JumpRegD),
                 .BranchD(BranchD),
                 .ALUControlD(ALUControlD),
                 .ALUSrcD(ALUSrcD),
-                .ImmSrcD(ImmSrcD));
+                .ImmSrcD(ImmSrcD),
+                .InverseBrCondD(InverseBrCondD));
 
     datapath dp(.clk(clk), .reset(reset),
                 // controller input signals
@@ -42,10 +46,12 @@ module riscvpipelined(input  logic        clk, reset,
                 .ResultSrcD(ResultSrcD),
                 .MemWriteD(MemWriteD),
                 .JumpD(JumpD),
+                .JumpRegD(JumpRegD),
                 .BranchD(BranchD),
                 .ALUControlD(ALUControlD),
                 .ALUSrcD(ALUSrcD),
                 .ImmSrcD(ImmSrcD),
+                .InverseBrCondD(InverseBrCondD),
                 // mem data
                 .MemWriteM(MemWrite),
                 .ALUResultM(ALUResult),

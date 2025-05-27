@@ -9,6 +9,7 @@ set(VERILATOR_SOURCES
     rtl/adder.v
     rtl/aludec.v
     rtl/alu.v
+    rtl/alucontrol.v
     rtl/bypass.v
     rtl/controller.v
     rtl/dmem.v
@@ -18,6 +19,7 @@ set(VERILATOR_SOURCES
     rtl/flopr.v
     rtl/hazard.v
     rtl/imem.v
+    rtl/instr_opcodes.v
     rtl/maindec.v
     rtl/mux2.v
     rtl/mux3.v
@@ -34,7 +36,7 @@ verilate(model
     SOURCES ${VERILATOR_SOURCES}
     TOP_MODULE top
     PREFIX Vtop
-    VERILATOR_ARGS -cc -Wall --exe -Wno-UNUSED -Wno-UNDRIVEN --trace --public
+    VERILATOR_ARGS -Irtl -cc -Wall --exe -Wno-UNUSED -Wno-UNDRIVEN --trace --public
 )
 
 target_link_libraries(model PRIVATE sim_decoder)

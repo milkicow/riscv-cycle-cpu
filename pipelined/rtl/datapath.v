@@ -4,10 +4,12 @@ module datapath(input  logic        clk, reset,
                 input  logic [1:0]  ResultSrcD,
                 input  logic        MemWriteD,
                 input  logic        JumpD,
+                input  logic        JumpRegD,
                 input  logic        BranchD,
-                input  logic [2:0]  ALUControlD,
+                input  logic [3:0]  ALUControlD,
                 input  logic        ALUSrcD,
                 input  logic [1:0]  ImmSrcD,
+                input  logic        InverseBrCondD,
                 // Memory
                 output logic        MemWriteM,
                 output logic [31:0] ALUResultM, WriteDataM,
@@ -29,7 +31,7 @@ module datapath(input  logic        clk, reset,
 
     // Fetch
     logic [31:0] PCNextF;
-    logic [31:0] PCTargetE;
+    logic [31:0] PCTargetE, PCTargetEImm, PCTargetEReg;
 
     logic [31:0] PCPlus4F;
     logic [31:0] PCD, PCPlus4D;
@@ -51,7 +53,7 @@ module datapath(input  logic        clk, reset,
 
     logic RegWriteE, MemWriteE, JumpE, BranchE, ALUSrcE;
     logic [1:0] ResultSrcE;
-    logic [2:0] ALUControlE;
+    logic [3:0] ALUControlE;
 
     // Execute
     logic [31:0] SrcAE, SrcBE;
@@ -64,6 +66,7 @@ module datapath(input  logic        clk, reset,
 
     logic RegWriteM;
     logic [1:0] ResultSrcM;
+    logic JumpRegE;
 
 
     // Memory
@@ -87,7 +90,9 @@ module datapath(input  logic        clk, reset,
     logic PCSrcE;
     logic ZeroE;
 
-    assign PCSrcE = BranchE & ZeroE | JumpE;
+    logic InverseBrCondE;
+
+    assign PCSrcE = BranchE & (ZeroE ^ InverseBrCondE) | JumpE;
 
     // assign in verilator on elf loading stage
     logic [31:0] startPC /* verilator public */;
@@ -95,6 +100,7 @@ module datapath(input  logic        clk, reset,
     // ------------------ Fetch ---------------------
 
     mux2    #(32) pcmux(PCPlus4F, PCTargetE, PCSrcE, PCNextF);
+
     flopenr #(32) pcreg(clk, reset, !StallF, startPC, PCNextF, PCF);
     adder         pcadd4(PCF, 32'd4, PCPlus4F);
 
@@ -114,14 +120,16 @@ module datapath(input  logic        clk, reset,
                              ResultW,
                              RD1D, RD2D);
 
-    extend      ext(InstrD[31:7], ImmSrcD, ImmExtD);
+    extend  ext(InstrD, ImmExtD);
 
-    flopenr #(217) DecodeExecute(clk, FlushE, 1, 0,
+    flopenr #(220) DecodeExecute(clk, FlushE, 1, 0,
             {RD1D, RD2D, PCD, RdD, ImmExtD, PCPlus4D,
             RegWriteD, ResultSrcD, MemWriteD, JumpD, BranchD, ALUControlD, ALUSrcD, Rs1D, Rs2D,
+            InverseBrCondD, JumpRegD,
             InstrD},
             {RD1E, RD2E, PCE, RdE, ImmExtE, PCPlus4E,
             RegWriteE, ResultSrcE, MemWriteE, JumpE, BranchE, ALUControlE, ALUSrcE, Rs1E, Rs2E,
+            InverseBrCondE, JumpRegE,
             InstrE});
 
     // ------------------ Execute --------------------
@@ -134,7 +142,10 @@ module datapath(input  logic        clk, reset,
 
     alu         alu(SrcAE, SrcBE, ALUControlE, ALUResultE, ZeroE);
     mux2 #(32)  srcbmux(predSrcBE, ImmExtE, ALUSrcE, SrcBE);
-    adder       pcaddbranch(PCE, ImmExtE, PCTargetE);
+    adder       pcaddbranchimm(PCE, ImmExtE, PCTargetEImm);
+    adder       pcaddbranchreg(RD1E, ImmExtE, PCTargetEReg);
+
+    mux2 #(32)  jumpresult(PCTargetEImm, PCTargetEReg, JumpRegE, PCTargetE);
 
     assign WriteDataE = predSrcBE;
 

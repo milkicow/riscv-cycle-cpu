@@ -1,17 +1,19 @@
-module extend(input  logic [31:7] instr,
-              input  logic [1:0]  immsrc,
+`include "instr_opcodes.v"
+
+module extend(input  logic [31:0] instr,
               output logic [31:0] immext);
 
     always @ (*) begin
-        case(immsrc)
+        case(instr[6:0])
             // I−type
-            2'b00: immext = {{20{instr[31]}}, instr[31:20]};
+            `OPCODE_I_TYPE, `OPCODE_JALR, `OPCODE_LOAD:
+                immext = {{20{instr[31]}}, instr[31:20]};
             // S−type (stores)
-            2'b01: immext = {{20{instr[31]}}, instr[31:25], instr[11:7]};
+            `OPCODE_S_TYPE: immext = {{20{instr[31]}}, instr[31:25], instr[11:7]};
             // B−type (branches)
-            2'b10: immext = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};
+            `OPCODE_B_TYPE: immext = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};
             // J−type (jal)
-            2'b11: immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
+            `OPCODE_JAL: immext = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
             default: immext = 32'bx; // undefined
         endcase
     end

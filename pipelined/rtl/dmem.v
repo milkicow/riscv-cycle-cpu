@@ -1,4 +1,4 @@
-module dmem #(parameter HIGH_BIT = 16)
+module dmem #(parameter HIGH_BIT = 18)
              (input logic         clk, we,
               input logic  [31:0] a, wd,
               output logic [31:0] rd);
