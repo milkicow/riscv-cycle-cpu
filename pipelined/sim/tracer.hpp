@@ -49,15 +49,15 @@ class Tracer {
 
         sim::EncInstr enc_instr;
         if (instr) try {
-            sim::Decoder::decode_instruction(instr, enc_instr);
+                sim::Decoder::decode_instruction(instr, enc_instr);
 
-            oss << '[' << format_pc(pc) << "]: " << enc_instr.format() << ' '
-                << format_instr_hex(instr) << '\n';
+                oss << '[' << format_pc(pc) << "]: " << enc_instr.format() << ' '
+                    << format_instr_hex(instr) << '\n';
 
-        } catch (std::runtime_error &err) {
-            oss << "Unknow instr: [" << format_pc(pc) << "]: " << format_instr_hex(instr)
-                      << '\n';
-        }
+            } catch (std::runtime_error &err) {
+                oss << "Unknow instr: [" << format_pc(pc) << "]: " << format_instr_hex(instr)
+                    << '\n';
+            }
 
         if (MemWrite) {
             oss << "\tDATA_MEM[" << format_addr(MemAddress) << "] = " << format_value(WriteData)
@@ -65,7 +65,7 @@ class Tracer {
         }
 
         if (RegWrite && (RdW != 0)) {
-            oss << "\tx" << std::dec << int(RdW) << " = " << ResultW << '\n';
+            oss << "\tx" << std::dec << int(RdW) << ": " << std::hex << ResultW << '\n';
         }
     }
 };
