@@ -14,6 +14,7 @@ module alu(input  logic [31:0] SrcA, SrcB,
             `ALU_SUB: ALUResult  = SrcA - SrcB;
             `ALU_AND: ALUResult  = SrcA & SrcB;
             `ALU_OR: ALUResult   = SrcA | SrcB;
+            `ALU_XOR: ALUResult  = SrcA ^ SrcB;
             `ALU_LESS: ALUResult = (SrcA < SrcB) ? 1 : 0;
             `ALU_SLL: ALUResult = SrcA << shamt;
             `ALU_SRL: ALUResult = SrcA >> shamt;
