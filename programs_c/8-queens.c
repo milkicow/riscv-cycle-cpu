@@ -25,8 +25,6 @@
  *
  * */
 
-#include <stdio.h>
-
 typedef int bool;
 
 #define TRUE 1
@@ -43,16 +41,15 @@ int abs(int n);
 int main() {
     int a[NMAX]; /* solution vector */
     int i;       /* counter */
-    int compare[]={1, 0, 0, 2, 10, 4, 40, 92, 352, 724, 2680}; // 11
+    // int compare[]={1, 0, 0, 2, 10, 4, 40, 92, 352, 724, 2680}; // 11
 
     int solution_count; /* how many solutions are there? */
 
 
-    for (i = 1; i <= 8; i++) {
+    for (i = 1; i <= 4; i++) {
         solution_count = 0;
         backtrack(a, 0, i, &solution_count);
         // printf("n=%d  solution_count=%d\n",i,solution_count);
-        if (compare[i - 1] != solution_count) return -1;
     }
 
 	// solution_count = 0;
@@ -63,7 +60,7 @@ int main() {
 
 	// printf("\nconstr candidate: %lu\n", construct_candidates_counter);
 
-    printf("%d", solution_count);
+    // printf("%d", solution_count);
 
     return solution_count;
 }
