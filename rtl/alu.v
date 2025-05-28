@@ -15,7 +15,8 @@ module alu(input  logic [31:0] SrcA, SrcB,
             `ALU_AND: ALUResult  = SrcA & SrcB;
             `ALU_OR: ALUResult   = SrcA | SrcB;
             `ALU_XOR: ALUResult  = SrcA ^ SrcB;
-            `ALU_LESS: ALUResult = (SrcA < SrcB) ? 1 : 0;
+            `ALU_SLT: ALUResult = {{31{1'b0}}, $signed(SrcA) < $signed(SrcB)};
+            `ALU_SLTU: ALUResult = {{31{1'b0}}, SrcA < SrcB};
             `ALU_SLL: ALUResult = SrcA << shamt;
             `ALU_SRL: ALUResult = SrcA >> shamt;
             `ALU_SRA: ALUResult = $signed(SrcA) >>> shamt;
