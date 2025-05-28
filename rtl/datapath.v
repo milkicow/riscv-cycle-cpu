@@ -10,6 +10,7 @@ module datapath(input  logic        clk, reset,
                 input  logic        ALUSrcD,
                 input  logic [1:0]  ImmSrcD,
                 input  logic        InverseBrCondD,
+                input  logic        LUIOpD,
                 // Memory
                 output logic        MemWriteM,
                 output logic [31:0] ALUResultM, WriteDataM,
@@ -112,11 +113,12 @@ module datapath(input  logic        clk, reset,
 
     assign RdD = InstrD[11:7];
 
-    assign Rs1D = InstrD[19:15];
+    assign Rs1D = LUIOpD ? 0 : InstrD[19:15];
     assign Rs2D = InstrD[24:20];
 
+
     regfile     regfile_inst(clk, RegWriteW,
-                             InstrD[19:15], InstrD[24:20], RdW,
+                             Rs1D, Rs2D, RdW,
                              ResultW,
                              RD1D, RD2D);
 
@@ -139,6 +141,8 @@ module datapath(input  logic        clk, reset,
     mux3 #(32)  srcaemux(RD1E, ResultW, ALUResultM, ForwardAE, SrcAE);
     mux3 #(32)  predsrcbemux(RD2E, ResultW, ALUResultM, ForwardBE, predSrcBE);
     // assign SrcAE = RD1E;
+
+
 
     alu         alu(SrcAE, SrcBE, ALUControlE, ALUResultE, ZeroE);
     mux2 #(32)  srcbmux(predSrcBE, ImmExtE, ALUSrcE, SrcBE);

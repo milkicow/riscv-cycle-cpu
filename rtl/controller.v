@@ -11,12 +11,13 @@ module controller(input  logic [6:0] op,
                   output logic [3:0] ALUControlD,
                   output logic       ALUSrcD,
                   output logic [1:0] ImmSrcD,
-                  output logic       InverseBrCondD);
+                  output logic       InverseBrCondD,
+                  output logic       LUIOpD);
 
     logic [1:0] ALUOp;
 
     maindec md(op, ResultSrcD, MemWriteD, BranchD,
-               ALUSrcD, RegWriteD, JumpD, JumpRegD, ImmSrcD, ALUOp);
+               ALUSrcD, RegWriteD, JumpD, JumpRegD, ImmSrcD, ALUOp, LUIOpD);
 
     aludec ad(op, funct3, funct7b5, ALUOp, ALUControlD, InverseBrCondD);
 

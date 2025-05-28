@@ -25,7 +25,7 @@ module riscvpipelined(input  logic        clk, reset,
     assign funct3 = InstrD[14:12];
     assign funct7b5 = InstrD[30];
 
-    logic InverseBrCondD;
+    logic InverseBrCondD, LUIOpD;
 
     controller c(.op(op), .funct3(funct3), .funct7b5(funct7b5),
 
@@ -38,7 +38,8 @@ module riscvpipelined(input  logic        clk, reset,
                 .ALUControlD(ALUControlD),
                 .ALUSrcD(ALUSrcD),
                 .ImmSrcD(ImmSrcD),
-                .InverseBrCondD(InverseBrCondD));
+                .InverseBrCondD(InverseBrCondD),
+                .LUIOpD(LUIOpD));
 
     datapath dp(.clk(clk), .reset(reset),
                 // controller input signals
@@ -52,6 +53,7 @@ module riscvpipelined(input  logic        clk, reset,
                 .ALUSrcD(ALUSrcD),
                 .ImmSrcD(ImmSrcD),
                 .InverseBrCondD(InverseBrCondD),
+                .LUIOpD(LUIOpD),
                 // mem data
                 .MemWriteM(MemWrite),
                 .ALUResultM(ALUResult),
