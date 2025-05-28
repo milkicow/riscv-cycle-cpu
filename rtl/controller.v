@@ -19,6 +19,6 @@ module controller(input  logic [6:0] op,
     maindec md(op, ResultSrcD, MemWriteD, BranchD,
                ALUSrcD, RegWriteD, JumpD, JumpRegD, ImmSrcD, ALUOp, LUIOpD);
 
-    aludec ad(op, funct3, funct7b5, ALUOp, ALUControlD, InverseBrCondD);
+    aludec ad(op, funct3, funct7b5, ALUOp, BranchD, ALUControlD, InverseBrCondD);
 
 endmodule
