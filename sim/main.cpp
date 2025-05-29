@@ -56,12 +56,12 @@ int main(int argc, char** argv) {
     trace->open(vcd_output.string().c_str());
 
     // Load program from elf and setup startPC
-    load_elf_in_mem(elf_file, top.get());
+    // load_elf_in_mem(elf_file, top.get());
 
     // Start setup
     top->clk = 1;
     top->reset = 1;
-    // top->top->rvpipelined->dp->startPC = 0;
+    top->top->rvpipelined->dp->startPC = 0;
 
     uint64_t main_time = 0;
 

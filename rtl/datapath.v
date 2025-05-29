@@ -107,9 +107,13 @@ module datapath(input  logic        clk, reset,
 
     flopenr #(96) FetchDecode(clk, FlushD, !StallD, 0,
                               {InstrF, PCF, PCPlus4F},
-                              {InstrD, PCD, PCPlus4D});
+                              {InstrFController, PCD, PCPlus4D});
 
     // ------------------ Decode --------------------
+
+    logic [31:0] InstrFController;
+    logic multiInstrStall;
+    igor_controller igor_controller(clk, InstrFController, InstrD, multiInstrStall);
 
     assign RdD = InstrD[11:7];
 
@@ -187,6 +191,8 @@ module datapath(input  logic        clk, reset,
                   .StallF(StallF), .StallD(StallD), .FlushE(FlushE),
                   // Clear args
                   .PCSrcE(PCSrcE),
-                  .FlushD(FlushD));
+                  .FlushD(FlushD),
+                  // MuitiInstrStall
+                  .multiInstrStall(multiInstrStall));
 
 endmodule

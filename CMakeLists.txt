@@ -26,6 +26,7 @@ set(VERILATOR_SOURCES
     rtl/regfile.v
     rtl/riscvpipelined.v
     rtl/top.v
+    rtl/igor_controller.v
 )
 
 add_executable(model sim/main.cpp)
